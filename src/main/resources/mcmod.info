@@ -1,13 +1,13 @@
 [
     {
-        "modid": "examplemod",
-        "name": "Example Mod",
-        "description": "An example mod.",
+        "modid": "hptracker",
+        "name": "HPTracker",
+        "description": "A mod to track (show alerts onscreen) specific players' health.\n/hptracker for help",
         "version": "${version}",
         "mcversion": "${mcversion}",
         "url": "",
         "updateUrl": "",
-        "authorList": ["The author"],
+        "authorList": ["jonuuh"],
         "credits": "",
         "logoFile": "",
         "screenshots": [],
