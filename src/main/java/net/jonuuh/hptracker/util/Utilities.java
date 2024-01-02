@@ -19,7 +19,7 @@ public class Utilities
 
     private static Map<Character, Integer> initMap()
     {
-        Map<Character,Integer> map = new HashMap<>();
+        Map<Character, Integer> map = new HashMap<>();
         map.put('0', 0x000000);
         map.put('1', 0x0000AA);
         map.put('2', 0x00AA00);

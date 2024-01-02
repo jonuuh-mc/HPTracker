@@ -26,7 +26,7 @@ public class HPTracker
     {
         this.mc = Minecraft.getMinecraft();
         this.config = new Config(mc);
-        this.debugKey = new KeyBinding("Debug", Keyboard.KEY_BACKSLASH, "HPTracker");
+        this.debugKey = new KeyBinding("Test", Keyboard.KEY_BACKSLASH, "HPTracker");
     }
 
     @EventHandler

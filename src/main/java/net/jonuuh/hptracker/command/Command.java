@@ -17,8 +17,6 @@ import java.util.regex.Pattern;
 public class Command extends CommandBase
 {
     private static final Pattern PLAYERNAME = Pattern.compile("^\\w{3,16}$");
-    private static final Pattern TIME = Pattern.compile("^\\d{1,3}$");
-    private static final Pattern HEXCOLOR = Pattern.compile("^(0x)?[0-9a-fA-F]{6}$");
     private static final Pattern FLOAT = Pattern.compile("^[+-]?\\d+\\.?\\d*$");
 
     private final Minecraft mc;
@@ -122,6 +120,12 @@ public class Command extends CommandBase
                     config.setThresholdHPPercent(Integer.parseInt(args[1]));
                 }
                 break;
+            case setmaxdist:
+                if (args.length == 2 && FLOAT.matcher(args[1]).matches())
+                {
+                    config.setMaxDistance(Float.parseFloat(args[1]));
+                }
+                break;
             case setscale:
                 if (args.length == 2 && FLOAT.matcher(args[1]).matches())
                 {
@@ -147,13 +151,13 @@ public class Command extends CommandBase
         {
             return getListOfStringsMatchingLastWord(args, Commands.getNames());
         }
-        else if (args.length == 2 && (args[0].equals(Commands.add.name()) || args[0].equals(Commands.remove.name())))
+        else if (args.length == 2)
         {
             if (args[0].equals(Commands.add.name()))
             {
                 return getListOfStringsMatchingLastWord(args, Utilities.getOnlinePlayerNames(mc));
             }
-            if (args[0].equals(Commands.remove.name()))
+            else if (args[0].equals(Commands.remove.name()))
             {
                 return getListOfStringsMatchingLastWord(args, targetPlayerNames);
             }

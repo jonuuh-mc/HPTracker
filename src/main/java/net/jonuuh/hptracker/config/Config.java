@@ -20,9 +20,9 @@ public class Config
     {
         this.mc = mc;
         this.targetPlayerNames = new TargetPlayerNameSet<>(mc);
-        this.thresholdHPPercent = 50;
+        this.thresholdHPPercent = 100;
         this.maxDistance = 15;
-        this.renderScale = 3.0F;
+        this.renderScale = 1.0F;
         this.renderYOffset = -30.0F;
     }
 
@@ -76,6 +76,7 @@ public class Config
         Utilities.addChatMessage(mc, "[HPTracker]", EnumChatFormatting.GOLD);
         Utilities.addChatMessage(mc, "targets: " + targetPlayerNames, EnumChatFormatting.DARK_GRAY);
         Utilities.addChatMessage(mc, "threshold HP%: " + thresholdHPPercent, EnumChatFormatting.DARK_GRAY);
+        Utilities.addChatMessage(mc, "max distance: " + maxDistance, EnumChatFormatting.DARK_GRAY);
         Utilities.addChatMessage(mc, "render scale: " + renderScale, EnumChatFormatting.DARK_GRAY);
         Utilities.addChatMessage(mc, "render offset: " + renderYOffset, EnumChatFormatting.DARK_GRAY);
         Utilities.addChatMessage(mc, "[HPTracker]", EnumChatFormatting.GOLD);
