@@ -95,9 +95,7 @@ public class Renderer
 
                 GlStateManager.enableBlend();
                 GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0);
-//                getFontRenderer().drawString(message, 0, -getFontRenderer().FONT_HEIGHT, getColor(l1));
-                getFontRenderer().drawString(message, (int) getXOffset(), (int) getYOffset(), getColor(l1));
-
+                getFontRenderer().drawStringWithShadow(message, getXOffset(), getYOffset(), getColor(l1));
                 GlStateManager.disableBlend();
                 GlStateManager.popMatrix();
             }
