@@ -56,14 +56,9 @@ public class Renderer
             GlStateManager.translate(0, config.getRenderYOffset() * scale, 0.0F);
             GlStateManager.rotate(-validTargetPlayer.getAngle(), 0.0F, 0.0F, 1.0F);
 
-            GlStateManager.enableBlend();
-            GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0);
-
             mc.getTextureManager().bindTexture(validTargetPlayer.getSkin());
             Gui.drawScaledCustomSizeModalRect(getFontRenderer().getStringWidth(hpStr) / 4, getFontRenderer().FONT_HEIGHT, 8, 8, 8, 8, 12, 12, 64.0F, 64.0F);
             getFontRenderer().drawStringWithShadow(hpStr, 0, 0, validTargetPlayer.getColor());
-
-            GlStateManager.disableBlend();
             GlStateManager.popMatrix();
         }
     }
