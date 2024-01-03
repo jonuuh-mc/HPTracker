@@ -13,10 +13,8 @@ import net.minecraft.util.Vec3;
 import net.minecraft.world.WorldSettings;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import net.minecraftforge.fml.common.gameevent.TickEvent;
 
-import java.util.Collections;
-import java.util.Comparator;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -26,14 +24,6 @@ public class Renderer
     private final Config config;
     private final RendererUtils rendererUtils;
 
-    private String message;
-    private int time;
-    private int color;
-    private float scale;
-    private float yOffset;
-    private float angle;
-    private ResourceLocation skin;
-
     Renderer(Minecraft mc, Config config)
     {
         this.mc = mc;
@@ -42,28 +32,7 @@ public class Renderer
     }
 
     /**
-     * Client tick event listener. (called 40 times per second)
-     *
-     * @param event the event
-     */
-    @SubscribeEvent
-    public void onClientTick(TickEvent.ClientTickEvent event)
-    {
-        if (mc.theWorld != null)
-        {
-            RendererUtils.Player player = rendererUtils.getMinHealthValidTargetPlayer();
-            if (player != null)
-            {
-                if ((player.getHealth() / player.getMaxHealth()) * 100 <= config.getThresholdHPPercent())
-                {
-                    startRender((player.getHealth() / 2) + "\u2764", player.getColor(), player.getAngle(), player.getSkin());
-                }
-            }
-        }
-    }
-
-    /**
-     * Render overlay text.
+     * Render overlay.
      * - see line 224 {@link net.minecraft.client.gui.GuiIngame#renderGameOverlay(float)}
      *
      * @param event the event
@@ -71,57 +40,32 @@ public class Renderer
     @SubscribeEvent
     public void render(RenderGameOverlayEvent.Text event)
     {
-        if (time > 0)
+        ScaledResolution sr = new ScaledResolution(mc);
+
+        for (RendererUtils.Player validTargetPlayer : rendererUtils.getValidTargetPlayers())
         {
-            time--;
-            ScaledResolution sr = new ScaledResolution(mc);
+            String hpStr = Utilities.roundToHalf(validTargetPlayer.getHealth() / 2.0F) + "\u2764";
+            float scale = config.getRenderScale();
 
             GlStateManager.pushMatrix();
             GlStateManager.translate((float) (sr.getScaledWidth() / 2), (float) (sr.getScaledHeight() / 2), 0.0F);
-            GlStateManager.translate(-getFontRenderer().getStringWidth(message) * scale / 2.0F, -getFontRenderer().FONT_HEIGHT * scale, 0.0F); // insanity
+            GlStateManager.translate(-getFontRenderer().getStringWidth(hpStr) * scale / 2.0F, -getFontRenderer().FONT_HEIGHT * scale, 0.0F); // insanity
             GlStateManager.scale(scale, scale, scale);
 
-            GlStateManager.rotate(angle, 0.0F, 0.0F, 1.0F);
-            GlStateManager.translate(0, yOffset * scale, 0.0F);
-            GlStateManager.rotate(-angle, 0.0F, 0.0F, 1.0F);
+            GlStateManager.rotate(validTargetPlayer.getAngle(), 0.0F, 0.0F, 1.0F);
+            GlStateManager.translate(0, config.getRenderYOffset() * scale, 0.0F);
+            GlStateManager.rotate(-validTargetPlayer.getAngle(), 0.0F, 0.0F, 1.0F);
 
             GlStateManager.enableBlend();
             GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0);
 
-            mc.getTextureManager().bindTexture(skin);
-            Gui.drawScaledCustomSizeModalRect(getFontRenderer().getStringWidth(message) / 4, getFontRenderer().FONT_HEIGHT, 8, 8, 8, 8, 12, 12, 64.0F, 64.0F);
-            getFontRenderer().drawStringWithShadow(message, 0, 0, color);
+            mc.getTextureManager().bindTexture(validTargetPlayer.getSkin());
+            Gui.drawScaledCustomSizeModalRect(getFontRenderer().getStringWidth(hpStr) / 4, getFontRenderer().FONT_HEIGHT, 8, 8, 8, 8, 12, 12, 64.0F, 64.0F);
+            getFontRenderer().drawStringWithShadow(hpStr, 0, 0, validTargetPlayer.getColor());
 
             GlStateManager.disableBlend();
             GlStateManager.popMatrix();
-
         }
-    }
-
-    private void startRender(String message, int color, float angle, ResourceLocation skin)
-    {
-        this.time = 60;
-        this.message = message;
-        this.color = color;
-        this.angle = angle;
-        this.skin = skin;
-        this.scale = config.getRenderScale();
-        this.yOffset = config.getRenderYOffset();
-    }
-
-    private float getXOffset()
-    {
-        return (-getFontRenderer().getStringWidth(message) / 2.0F);
-    }
-
-    private float getYOffset()
-    {
-        return (-getFontRenderer().FONT_HEIGHT / 2.0F);
-    }
-
-    private int getColor(int l1)
-    {
-        return color + (l1 << 24 & -color);
     }
 
     private FontRenderer getFontRenderer()
@@ -131,52 +75,74 @@ public class Renderer
 
     private class RendererUtils
     {
-        /**
-         * Creates and gets a Player object, containing the name, max health, current health, and name color
-         *
-         * @return the player OR null if there no non-spectator target players within the max config distance
-         */
-        public Player getMinHealthValidTargetPlayer()
+        public Set<Player> getValidTargetPlayers()
         {
-            String minHealthTargetPlayerName = getMinHealthValidTargetPlayerName();
-            if (minHealthTargetPlayerName != null)
+            Set<String> validTargetPlayerNames = config.getTargetPlayerNames().stream().filter(this::verifyPlayer).collect(Collectors.toSet());
+            Set<Player> validTargetPlayers = new HashSet<>();
+
+            for (String validTargetPlayerName : validTargetPlayerNames)
             {
-                float maxHealth = getPlayerMaxHealthByName(minHealthTargetPlayerName);
-                float health = getPlayerHealthByName(minHealthTargetPlayerName);
-                int color = getPlayerColorHexByName(minHealthTargetPlayerName);
-                float angle = getAngleToPlayerByName(minHealthTargetPlayerName);
-                ResourceLocation skin = getPlayerSkinByName(minHealthTargetPlayerName);
-                return new Player(minHealthTargetPlayerName, maxHealth, health, color, angle, skin);
+                float health = getPlayerByName(validTargetPlayerName).getHealth();
+                int color = getPlayerColorHexByName(validTargetPlayerName);
+                float angle = getAngleToPlayerByName(validTargetPlayerName);
+                ResourceLocation skin = getPlayerSkinByName(validTargetPlayerName);
+                validTargetPlayers.add(new Player(validTargetPlayerName, health, color, angle, skin));
             }
-            return null;
+            return validTargetPlayers;
         }
 
         /**
-         * Gets name of the valid target player with least health OR null if no valid target players.
-         */
-        private String getMinHealthValidTargetPlayerName()
-        {
-            Set<String> validPlayers = config.getTargetPlayerNames().stream().filter(this::verifyPlayer).collect(Collectors.toSet());
-            return (validPlayers.size() != 0) ? Collections.min(validPlayers, Comparator.comparing(this::getPlayerHealthByName)) : null;
-        }
-
-        /**
-         * Verify by name whether an EntityPlayer exists in WorldClient, is in survival, and is within max config distance<br>
+         * Verify by name whether an EntityPlayer exists in WorldClient, exists in the playerInfoMap,
+         * is not a spectator, is within max distance, and is within hp threshold.<br>
          * Note: WorldClient assumed != null
          */
         private boolean verifyPlayer(String name)
         {
-            EntityPlayer player = mc.theWorld.getPlayerEntityByName(name);
-            return player != null && !isPlayerSpectatorByName(name) && mc.thePlayer.getDistanceToEntity(player) <= config.getMaxDistance();
+            if (getPlayerByName(name) == null || !Utilities.getOnlinePlayerNames(mc).contains(name))
+            {
+                return false;
+            }
+            return !isPlayerSpectatorByName(name) && isPlayerWithinMaxDistByName(name) && isPlayerWithinHPThresholdByName(name);
         }
 
         /**
          * Verify by name whether an EntityPlayer is a spectator.<br>
          * Note: NetHandlerPlayClient and player NetworkPlayerInfo assumed != null
          */
-        private boolean isPlayerSpectatorByName(String name) // TODO: nullpointer on world change?
+        private boolean isPlayerSpectatorByName(String name)
         {
             return mc.getNetHandler().getPlayerInfo(name).getGameType() == WorldSettings.GameType.SPECTATOR;
+        }
+
+        /**
+         * Verify by name whether an EntityPlayer is within max configured distance.<br>
+         * Note: WorldClient and EntityPlayer assumed != null
+         */
+        private boolean isPlayerWithinMaxDistByName(String name)
+        {
+            return mc.thePlayer.getDistanceToEntity(getPlayerByName(name)) <= config.getMaxDistance();
+        }
+
+        /**
+         * Verify by name whether an EntityPlayer is within configured hp threshold.<br>
+         * Note: WorldClient and EntityPlayer assumed != null
+         */
+        private boolean isPlayerWithinHPThresholdByName(String name)
+        {
+            double hpPercent = (getPlayerByName(name).getHealth() / getPlayerByName(name).getMaxHealth()) * 100;
+            return hpPercent <= config.getThresholdHPPercent();
+        }
+
+        /**
+         * Gets an EntityPlayer's displayName color hex by name.<br>
+         * Note: WorldClient and EntityPlayer assumed != null
+         */
+        private int getPlayerColorHexByName(String name)
+        {
+            EntityPlayer player = getPlayerByName(name);
+            String formattedName = player.getDisplayName().getFormattedText();
+            char tryFormattingColorCode = formattedName.charAt(formattedName.indexOf(player.getName()) - 1);
+            return Utilities.formattingColorCodeToHex.getOrDefault(tryFormattingColorCode, 0xFFFFFF);
         }
 
         /**
@@ -189,43 +155,12 @@ public class Renderer
         }
 
         /**
-         * Gets a EntityPlayer's max health by name.<br>
-         * Note: WorldClient and EntityPlayer assumed != null
-         */
-        private float getPlayerMaxHealthByName(String name)
-        {
-            return mc.theWorld.getPlayerEntityByName(name).getMaxHealth();
-        }
-
-        /**
-         * Gets a EntityPlayer's health by name.<br>
-         * Note: WorldClient and EntityPlayer assumed != null
-         */
-        private float getPlayerHealthByName(String name)
-        {
-            return mc.theWorld.getPlayerEntityByName(name).getHealth();
-        }
-
-        /**
-         * Gets an EntityPlayer's displayName color hex by name.<br>
-         * Note: WorldClient and EntityPlayer assumed != null
-         */
-        private int getPlayerColorHexByName(String name)
-        {
-            EntityPlayer player = mc.theWorld.getPlayerEntityByName(name);
-            String formattedName = player.getDisplayName().getFormattedText();
-            String unformattedName = player.getName();
-            char formattingColorCode = formattedName.charAt(formattedName.indexOf(unformattedName) - 1);
-            return Utilities.formattingColorCodeToHex.getOrDefault(formattingColorCode, 0xFFFFFF);
-        }
-
-        /**
          * Gets the angle from the player's look vector to EntityPlayer by name.<br>
          * Note: WorldClient and EntityPlayer and EntityPlayerSP assumed != null
          */
         private float getAngleToPlayerByName(String name)
         {
-            EntityPlayer player = mc.theWorld.getPlayerEntityByName(name);
+            EntityPlayer player = getPlayerByName(name);
             Vec3 playerDiffVec = new Vec3(player.posX, player.posY, player.posZ).subtract(new Vec3(mc.thePlayer.posX, mc.thePlayer.posY, mc.thePlayer.posZ)).normalize();
             Vec3 playerLookVec = mc.thePlayer.getLookVec();
 
@@ -264,19 +199,22 @@ public class Renderer
             return (float) Math.toDegrees(angle_from_B_to_A);
         }
 
+        private EntityPlayer getPlayerByName(String name)
+        {
+            return mc.theWorld.getPlayerEntityByName(name);
+        }
+
         private class Player
         {
             private final String name;
-            private final float maxHealth;
             private final float health;
             private final int color;
             private final float angle;
             private final ResourceLocation skin;
 
-            private Player(String name, float maxHealth, float health, int color, float angle, ResourceLocation skin)
+            private Player(String name, float health, int color, float angle, ResourceLocation skin)
             {
                 this.name = name;
-                this.maxHealth = maxHealth;
                 this.health = health;
                 this.color = color;
                 this.angle = angle;
@@ -286,11 +224,6 @@ public class Renderer
             private String getName()
             {
                 return name;
-            }
-
-            private float getMaxHealth()
-            {
-                return maxHealth;
             }
 
             private float getHealth()

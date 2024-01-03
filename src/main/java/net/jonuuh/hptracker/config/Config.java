@@ -21,9 +21,9 @@ public class Config
         this.mc = mc;
         this.targetPlayerNames = new TargetPlayerNameSet<>(mc);
         this.thresholdHPPercent = 100;
-        this.maxDistance = 15;
-        this.renderScale = 1.0F;
-        this.renderYOffset = -30.0F;
+        this.maxDistance = 20;
+        this.renderScale = 0.8F;
+        this.renderYOffset = -40.0F;
     }
 
     public TargetPlayerNameSet<String> getTargetPlayerNames()

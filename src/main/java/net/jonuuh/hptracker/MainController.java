@@ -48,6 +48,14 @@ public class MainController
         }
     }
 
+//    @SubscribeEvent
+//    public void onWorldLoad(WorldEvent.Load event)
+//    {
+//        System.out.println("world loaded");
+//        System.out.println(mc.thePlayer);
+//        System.out.println(mc.getNetHandler());
+//    }
+
 //    /**
 //     * Client chat received event handler.
 //     *
