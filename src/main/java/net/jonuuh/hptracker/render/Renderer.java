@@ -8,6 +8,7 @@ import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.WorldSettings;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
@@ -31,6 +32,7 @@ public class Renderer
     private float scale;
     private float yOffset;
     private float angle;
+    private ResourceLocation skin;
 
     Renderer(Minecraft mc, Config config)
     {
@@ -54,7 +56,7 @@ public class Renderer
             {
                 if ((player.getHealth() / player.getMaxHealth()) * 100 <= config.getThresholdHPPercent())
                 {
-                    startRender(player.getName() + ": " + (player.getHealth() / 2) + "\u2764", player.getColor(), player.getAngle());
+                    startRender((player.getHealth() / 2) + "\u2764", player.getColor(), player.getAngle(), player.getSkin());
                 }
             }
         }
@@ -71,45 +73,40 @@ public class Renderer
     {
         if (time > 0)
         {
-            ScaledResolution sr = new ScaledResolution(mc);
             time--;
+            ScaledResolution sr = new ScaledResolution(mc);
 
-            float f2 = (float) time - event.partialTicks;
-            int l1 = (int) (f2 * 255.0F / 20.0F); // normalizing?
+            GlStateManager.pushMatrix();
+            GlStateManager.translate((float) (sr.getScaledWidth() / 2), (float) (sr.getScaledHeight() / 2), 0.0F);
+            GlStateManager.translate(-getFontRenderer().getStringWidth(message) * scale / 2.0F, -getFontRenderer().FONT_HEIGHT * scale, 0.0F); // insanity
+            GlStateManager.scale(scale, scale, scale);
 
-            if (l1 > 255)
-            {
-                l1 = 255;
-            }
+            GlStateManager.rotate(angle, 0.0F, 0.0F, 1.0F);
+            GlStateManager.translate(0, yOffset * scale, 0.0F);
+            GlStateManager.rotate(-angle, 0.0F, 0.0F, 1.0F);
 
-            if (l1 > 8)
-            {
-                // TODO: auto scaling on resize?
-                GlStateManager.pushMatrix();
-                GlStateManager.translate((float) (sr.getScaledWidth() / 2), (float) (sr.getScaledHeight() / 2), 0.0F);
-                GlStateManager.scale(scale, scale, scale);
+            GlStateManager.enableBlend();
+            GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0);
 
-                GlStateManager.rotate(angle, 0.0F, 0.0F, 1.0F);
-                GlStateManager.translate(0, yOffset, 0.0F);
-                GlStateManager.rotate(-angle, 0.0F, 0.0F, 1.0F);
+            mc.getTextureManager().bindTexture(skin);
+            Gui.drawScaledCustomSizeModalRect(getFontRenderer().getStringWidth(message) / 4, getFontRenderer().FONT_HEIGHT, 8, 8, 8, 8, 12, 12, 64.0F, 64.0F);
+            getFontRenderer().drawStringWithShadow(message, 0, 0, color);
 
-                GlStateManager.enableBlend();
-                GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0);
-                getFontRenderer().drawStringWithShadow(message, getXOffset(), getYOffset(), getColor(l1));
-                GlStateManager.disableBlend();
-                GlStateManager.popMatrix();
-            }
+            GlStateManager.disableBlend();
+            GlStateManager.popMatrix();
+
         }
     }
 
-    private void startRender(String message, int color, float angle)
+    private void startRender(String message, int color, float angle, ResourceLocation skin)
     {
-        this.message = message;
         this.time = 60;
+        this.message = message;
         this.color = color;
+        this.angle = angle;
+        this.skin = skin;
         this.scale = config.getRenderScale();
         this.yOffset = config.getRenderYOffset();
-        this.angle = angle;
     }
 
     private float getXOffset()
@@ -148,7 +145,8 @@ public class Renderer
                 float health = getPlayerHealthByName(minHealthTargetPlayerName);
                 int color = getPlayerColorHexByName(minHealthTargetPlayerName);
                 float angle = getAngleToPlayerByName(minHealthTargetPlayerName);
-                return new Player(minHealthTargetPlayerName, maxHealth, health, color, angle);
+                ResourceLocation skin = getPlayerSkinByName(minHealthTargetPlayerName);
+                return new Player(minHealthTargetPlayerName, maxHealth, health, color, angle, skin);
             }
             return null;
         }
@@ -179,6 +177,15 @@ public class Renderer
         private boolean isPlayerSpectatorByName(String name) // TODO: nullpointer on world change?
         {
             return mc.getNetHandler().getPlayerInfo(name).getGameType() == WorldSettings.GameType.SPECTATOR;
+        }
+
+        /**
+         * Gets a NetworkPlayerInfo's skin by name.<br>
+         * Note: NetHandlerPlayClient, player NetworkPlayerInfo, and ResourceLocation assumed != null
+         */
+        private ResourceLocation getPlayerSkinByName(String name)
+        {
+            return mc.getNetHandler().getPlayerInfo(name).getLocationSkin();
         }
 
         /**
@@ -264,14 +271,16 @@ public class Renderer
             private final float health;
             private final int color;
             private final float angle;
+            private final ResourceLocation skin;
 
-            private Player(String name, float maxHealth, float health, int color, float angle)
+            private Player(String name, float maxHealth, float health, int color, float angle, ResourceLocation skin)
             {
                 this.name = name;
                 this.maxHealth = maxHealth;
                 this.health = health;
                 this.color = color;
                 this.angle = angle;
+                this.skin = skin;
             }
 
             private String getName()
@@ -297,6 +306,11 @@ public class Renderer
             private float getAngle()
             {
                 return angle;
+            }
+
+            public ResourceLocation getSkin()
+            {
+                return skin;
             }
         }
     }
