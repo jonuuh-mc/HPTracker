@@ -22,7 +22,7 @@ public class Config
         this.targetPlayerNames = new TargetPlayerNameSet<>(mc);
         this.thresholdHPPercent = 100;
         this.maxDistance = 20;
-        this.renderScale = 0.8F;
+        this.renderScale = 1.0F;
         this.renderYOffset = -40.0F;
     }
 
@@ -74,11 +74,11 @@ public class Config
     public void displayConfig()
     {
         Utilities.addChatMessage(mc, "[HPTracker]", EnumChatFormatting.GOLD);
-        Utilities.addChatMessage(mc, "targets: " + targetPlayerNames, EnumChatFormatting.DARK_GRAY);
-        Utilities.addChatMessage(mc, "threshold HP%: " + thresholdHPPercent, EnumChatFormatting.DARK_GRAY);
-        Utilities.addChatMessage(mc, "max distance: " + maxDistance, EnumChatFormatting.DARK_GRAY);
-        Utilities.addChatMessage(mc, "render scale: " + renderScale, EnumChatFormatting.DARK_GRAY);
-        Utilities.addChatMessage(mc, "render offset: " + renderYOffset, EnumChatFormatting.DARK_GRAY);
+        Utilities.addChatMessage(mc, "targets: " + Utilities.getDisplayNames(mc, targetPlayerNames), EnumChatFormatting.GRAY); // TODO: fix closing bracket color
+        Utilities.addChatMessage(mc, "threshold HP%: " + thresholdHPPercent, EnumChatFormatting.GRAY);
+        Utilities.addChatMessage(mc, "max distance: " + maxDistance, EnumChatFormatting.GRAY);
+        Utilities.addChatMessage(mc, "render scale: " + renderScale, EnumChatFormatting.GRAY);
+        Utilities.addChatMessage(mc, "render offset: " + renderYOffset, EnumChatFormatting.GRAY);
         Utilities.addChatMessage(mc, "[HPTracker]", EnumChatFormatting.GOLD);
     }
 }

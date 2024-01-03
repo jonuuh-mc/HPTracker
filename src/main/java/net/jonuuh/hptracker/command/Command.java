@@ -79,7 +79,17 @@ public class Command extends CommandBase
             return;
         }
 
-        switch (Commands.valueOf(args[0].toLowerCase()))
+        Commands command = Commands.config;
+        try
+        {
+            command = Commands.valueOf(args[0].toLowerCase());
+        }
+        catch(IllegalArgumentException e)
+        {
+            e.printStackTrace();
+        }
+
+        switch (command)
         {
             case config:
                 if (args.length == 1)
@@ -90,7 +100,7 @@ public class Command extends CommandBase
             case list:
                 if (args.length == 1)
                 {
-                    Utilities.addChatMessage(mc, targetPlayerNames.toString());
+                    Utilities.addChatMessage(mc, String.valueOf(Utilities.getDisplayNames(mc, targetPlayerNames)));
                 }
                 break;
             case add:

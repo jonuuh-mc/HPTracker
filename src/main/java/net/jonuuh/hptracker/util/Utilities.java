@@ -1,5 +1,6 @@
 package net.jonuuh.hptracker.util;
 
+import net.jonuuh.hptracker.config.TargetPlayerNameSet;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.network.NetworkPlayerInfo;
 import net.minecraft.util.ChatComponentText;
@@ -7,8 +8,10 @@ import net.minecraft.util.EnumChatFormatting;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Misc. Utilities.
@@ -37,6 +40,24 @@ public class Utilities
         map.put('e', 0xFFFF55);
         map.put('f', 0xFFFFFF);
         return map;
+    }
+
+    public static Set<String> getDisplayNames(Minecraft mc, TargetPlayerNameSet<String> targetPlayerNameSet)
+    {
+        Set<String> displayNames = new HashSet<>();
+        for (String targetPlayerName : targetPlayerNameSet)
+        {
+            try
+            {
+                displayNames.add(mc.theWorld.getPlayerEntityByName(targetPlayerName).getDisplayName().getFormattedText());
+            }
+            catch (NullPointerException e)
+            {
+                e.printStackTrace();
+                displayNames.add(targetPlayerName);
+            }
+        }
+        return displayNames;
     }
 
     /**
