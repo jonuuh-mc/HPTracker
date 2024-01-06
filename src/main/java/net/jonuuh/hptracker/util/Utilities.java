@@ -3,8 +3,7 @@ package net.jonuuh.hptracker.util;
 import net.jonuuh.hptracker.config.TargetPlayerNameSet;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.network.NetworkPlayerInfo;
-import net.minecraft.util.ChatComponentText;
-import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.scoreboard.ScorePlayerTeam;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -12,6 +11,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Misc. Utilities.
@@ -60,6 +60,30 @@ public class Utilities
         return displayNames;
     }
 
+    public static Set<String> getOnlinePlayerDisplayNames(Minecraft mc)
+    {
+        Set<String> displayNames = new HashSet<>();
+        try
+        {
+            displayNames = mc.getNetHandler().getPlayerInfoMap().stream().map(Utilities::getPlayerName).collect(Collectors.toSet());
+        }
+        catch(NullPointerException e)
+        {
+            e.printStackTrace();
+        }
+        return displayNames;
+    }
+
+
+    private static String getPlayerName(NetworkPlayerInfo networkPlayerInfo)
+    {
+        if (networkPlayerInfo.getDisplayName() != null)
+        {
+            return networkPlayerInfo.getDisplayName().getFormattedText();
+        }
+        return ScorePlayerTeam.formatPlayerName(networkPlayerInfo.getPlayerTeam(), networkPlayerInfo.getGameProfile().getName());
+    }
+
     /**
      * Gets the names of all online players (in the world).
      *
@@ -77,29 +101,6 @@ public class Utilities
             }
         }
         return onlinePlayers;
-    }
-
-    /**
-     * Add a client side chat message.
-     *
-     * @param mc      the minecraft object
-     * @param message the message
-     */
-    public static void addChatMessage(Minecraft mc, String message)
-    {
-        addChatMessage(mc, message, EnumChatFormatting.WHITE);
-    }
-
-    /**
-     * Add a client side colored chat message.
-     *
-     * @param mc      the minecraft object
-     * @param message the message
-     * @param color   the color
-     */
-    public static void addChatMessage(Minecraft mc, String message, EnumChatFormatting color)
-    {
-        mc.thePlayer.addChatMessage(new ChatComponentText(color + message));
     }
 
     /**

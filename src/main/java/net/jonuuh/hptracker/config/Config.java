@@ -1,5 +1,6 @@
 package net.jonuuh.hptracker.config;
 
+import net.jonuuh.hptracker.util.ChatLogger;
 import net.jonuuh.hptracker.util.Utilities;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.EnumChatFormatting;
@@ -10,15 +11,17 @@ import net.minecraft.util.EnumChatFormatting;
 public class Config
 {
     private final Minecraft mc;
+    private final ChatLogger chatLogger;
     private final TargetPlayerNameSet<String> targetPlayerNames;
     private int thresholdHPPercent;
     private float maxDistance;
     private float renderScale;
     private float renderYOffset;
 
-    public Config(Minecraft mc)
+    public Config(Minecraft mc, ChatLogger chatLogger)
     {
         this.mc = mc;
+        this.chatLogger = chatLogger;
         this.targetPlayerNames = new TargetPlayerNameSet<>(mc);
         this.thresholdHPPercent = 50;
         this.maxDistance = 20;
@@ -73,13 +76,11 @@ public class Config
 
     public void displayConfig()
     {
-        Utilities.addChatMessage(mc, "[HPTracker]", EnumChatFormatting.GOLD);
-        Utilities.addChatMessage(mc, "targets: " + Utilities.getDisplayNames(mc, targetPlayerNames), EnumChatFormatting.GRAY); // TODO: fix closing bracket color
-        Utilities.addChatMessage(mc, "threshold HP%: " + thresholdHPPercent, EnumChatFormatting.GRAY);
-        Utilities.addChatMessage(mc, "max distance: " + maxDistance, EnumChatFormatting.GRAY);
-        Utilities.addChatMessage(mc, "render scale: " + renderScale, EnumChatFormatting.GRAY);
-        Utilities.addChatMessage(mc, "render offset: " + renderYOffset, EnumChatFormatting.GRAY);
-        Utilities.addChatMessage(mc, "[HPTracker]", EnumChatFormatting.GOLD);
+        chatLogger.addLog("targets: " + Utilities.getDisplayNames(mc, targetPlayerNames), EnumChatFormatting.GRAY, false); // TODO: fix closing bracket color
+        chatLogger.addLog("threshold HP%: " + thresholdHPPercent, EnumChatFormatting.GRAY, false);
+        chatLogger.addLog("max distance: " + maxDistance, EnumChatFormatting.GRAY, false);
+        chatLogger.addLog("render scale: " + renderScale, EnumChatFormatting.GRAY, false);
+        chatLogger.addLog("render offset: " + renderYOffset, EnumChatFormatting.GRAY, false);
     }
 }
 

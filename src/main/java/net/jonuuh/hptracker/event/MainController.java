@@ -1,26 +1,30 @@
-package net.jonuuh.hptracker;
+package net.jonuuh.hptracker.event;
 
 import net.jonuuh.hptracker.config.Config;
-import net.jonuuh.hptracker.render.RendererController;
+import net.jonuuh.hptracker.event.render.Renderer;
+import net.jonuuh.hptracker.util.ChatLogger;
 import net.jonuuh.hptracker.util.Utilities;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.KeyBinding;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.InputEvent.KeyInputEvent;
 
 public class MainController
 {
     private final Minecraft mc;
+    private final ChatLogger chatLogger;
     private final KeyBinding debugKey;
-    private final RendererController rendererController;
+    private final Renderer renderer;
 
     private boolean doRendering = false;
 
-    public MainController(Minecraft mc, Config config, KeyBinding debugKey)
+    public MainController(Minecraft mc, ChatLogger chatLogger, Config config, KeyBinding debugKey)
     {
         this.mc = mc;
+        this.chatLogger = chatLogger;
         this.debugKey = debugKey;
-        this.rendererController = new RendererController(mc, config);
+        renderer = new Renderer(mc, config);
     }
 
     /**
@@ -33,16 +37,17 @@ public class MainController
     {
         if (debugKey.isPressed())
         {
-            System.out.println("debugKey pressed");
+            chatLogger.addLog(Utilities.getOnlinePlayerDisplayNames(mc).toString());
+
             if (!doRendering)
             {
-                Utilities.addChatMessage(mc, "bound controller");
-                rendererController.bind();
+                chatLogger.addLog("registered renderer");
+                MinecraftForge.EVENT_BUS.register(renderer);
             }
             else
             {
-                Utilities.addChatMessage(mc, "unbound controller");
-                rendererController.unbind();
+                chatLogger.addLog("unregistered renderer");
+                MinecraftForge.EVENT_BUS.unregister(renderer);
             }
             doRendering = !doRendering;
         }

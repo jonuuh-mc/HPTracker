@@ -34,7 +34,7 @@ public class TargetPlayerNameSet<T extends String> extends HashSet<String>
                 cFiltered.add(str);
             }
         }
-//        List<String> cFiltered = c.stream().filter(str -> miscUtils.getOnlinePlayers().contains(str)).collect(Collectors.toList());
         return super.addAll(cFiltered);
+//        return super.addAll(c.stream().filter(str -> Utilities.getOnlinePlayerNames(mc).contains(str)).collect(Collectors.toSet()));
     }
 }

@@ -2,6 +2,7 @@ package net.jonuuh.hptracker.command;
 
 import net.jonuuh.hptracker.config.Config;
 import net.jonuuh.hptracker.config.TargetPlayerNameSet;
+import net.jonuuh.hptracker.util.ChatLogger;
 import net.jonuuh.hptracker.util.Utilities;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
@@ -20,12 +21,14 @@ public class Command extends CommandBase
     private static final Pattern FLOAT = Pattern.compile("^[+-]?\\d+\\.?\\d*$");
 
     private final Minecraft mc;
+    private final ChatLogger chatLogger;
     private final Config config;
     private final TargetPlayerNameSet<String> targetPlayerNames;
 
-    public Command(Minecraft mc, Config config)
+    public Command(Minecraft mc, ChatLogger chatLogger, Config config)
     {
         this.mc = mc;
+        this.chatLogger = chatLogger;
         this.config = config;
         this.targetPlayerNames = config.getTargetPlayerNames();
     }
@@ -79,12 +82,12 @@ public class Command extends CommandBase
             return;
         }
 
-        Commands command = Commands.config;
+        Commands command = Commands.none;
         try
         {
             command = Commands.valueOf(args[0].toLowerCase());
         }
-        catch(IllegalArgumentException e)
+        catch (IllegalArgumentException e)
         {
             e.printStackTrace();
         }
@@ -100,19 +103,19 @@ public class Command extends CommandBase
             case list:
                 if (args.length == 1)
                 {
-                    Utilities.addChatMessage(mc, String.valueOf(Utilities.getDisplayNames(mc, targetPlayerNames)));
+                    chatLogger.addLog(String.valueOf(Utilities.getDisplayNames(mc, targetPlayerNames)));
                 }
                 break;
             case add:
                 if (args.length == 2 && PLAYERNAME.matcher(args[1]).matches())
                 {
-                    Utilities.addChatMessage(mc, String.valueOf(targetPlayerNames.add(args[1])));
+                    chatLogger.addLog(String.valueOf(targetPlayerNames.add(args[1])));
                 }
                 break;
             case remove:
                 if (args.length == 2 && PLAYERNAME.matcher(args[1]).matches())
                 {
-                    Utilities.addChatMessage(mc, String.valueOf(targetPlayerNames.remove(args[1])));
+                    chatLogger.addLog(String.valueOf(targetPlayerNames.remove(args[1])));
                 }
                 break;
             case addall:
@@ -177,12 +180,33 @@ public class Command extends CommandBase
 
     private void displayCommandHelp()
     {
-        Utilities.addChatMessage(mc, "[HPTracker]", EnumChatFormatting.GOLD);
         for (String command : Commands.getNames())
         {
-            Utilities.addChatMessage(mc, "/hptracker " + command, EnumChatFormatting.DARK_GRAY);
+            chatLogger.addLog("/hptracker " + command, EnumChatFormatting.GRAY, false);
         }
-        Utilities.addChatMessage(mc, "[HPTracker]", EnumChatFormatting.GOLD);
     }
+
+
+    private enum Commands
+    {
+        none,
+        config,
+        list,
+        add,
+        remove,
+        addall,
+        removeall,
+        sethp,
+        setmaxdist,
+        setscale,
+        setoffset;
+
+        private static String[] getNames()
+        {
+            return new String[]{config.name(), list.name(), add.name(), remove.name(), addall.name(), removeall.name(),
+                    sethp.name(), setmaxdist.name(), setscale.name(), setoffset.name()};
+        }
+    }
+
 }
 

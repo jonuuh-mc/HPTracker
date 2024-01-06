@@ -2,13 +2,13 @@
     {
         "modid": "hptracker",
         "name": "HPTracker",
-        "description": "A mod to track (show alerts onscreen) specific players' health.\n/hptracker for help",
+        "description": "A mod to track specific players' health and location.\n/hptracker for help",
         "version": "${version}",
         "mcversion": "${mcversion}",
         "url": "",
         "updateUrl": "",
         "authorList": ["jonuuh"],
-        "credits": "",
+        "credits": "inspiration from Alexdoru and Mxntal's mods",
         "logoFile": "",
         "screenshots": [],
         "dependencies": []
