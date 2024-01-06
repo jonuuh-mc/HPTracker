@@ -9,17 +9,16 @@ import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
+import net.minecraft.command.NumberInvalidException;
 import net.minecraft.util.BlockPos;
+import net.minecraft.util.ChatComponentText;
+import net.minecraft.util.ChatStyle;
 import net.minecraft.util.EnumChatFormatting;
 
 import java.util.List;
-import java.util.regex.Pattern;
 
 public class Command extends CommandBase
 {
-    private static final Pattern PLAYERNAME = Pattern.compile("^\\w{3,16}$");
-    private static final Pattern FLOAT = Pattern.compile("^[+-]?\\d+\\.?\\d*$");
-
     private final Minecraft mc;
     private final ChatLogger chatLogger;
     private final Config config;
@@ -95,62 +94,132 @@ public class Command extends CommandBase
         switch (command)
         {
             case config:
-                if (args.length == 1)
+                if (isArgsLenUnexpected(args, 1))
                 {
-                    config.displayConfig();
+                    break;
                 }
+                config.displayConfig();
                 break;
-            case list:
-                if (args.length == 1)
-                {
-                    chatLogger.addLog(String.valueOf(Utilities.getDisplayNames(mc, targetPlayerNames)));
-                }
-                break;
+
             case add:
-                if (args.length == 2 && PLAYERNAME.matcher(args[1]).matches())
+                if (isArgsLenUnexpected(args, 2))
                 {
-                    chatLogger.addLog(String.valueOf(targetPlayerNames.add(args[1])));
+                    break;
                 }
+                else if (!Utilities.getOnlinePlayerNames(mc).contains(args[1]))
+                {
+                    chatLogger.addFailureLog("Player not found.");
+                    break;
+                }
+                else if (targetPlayerNames.contains(args[1]))
+                {
+                    chatLogger.addFailureLog("Player already in target players.");
+                    break;
+                }
+                targetPlayerNames.add(args[1]);
+                chatLogger.addSuccessLog("Added \"" + args[1] + "\" to target players.");
                 break;
+
             case remove:
-                if (args.length == 2 && PLAYERNAME.matcher(args[1]).matches())
+                if (isArgsLenUnexpected(args, 2))
                 {
-                    chatLogger.addLog(String.valueOf(targetPlayerNames.remove(args[1])));
+                    break;
                 }
-                break;
-            case addall:
-                // TODO
-                break;
-            case removeall:
-                if (args.length == 1)
+                else if (!targetPlayerNames.contains(args[1]))
                 {
-                    targetPlayerNames.clear();
+                    chatLogger.addFailureLog("Player not in target players.");
+                    break;
                 }
+                targetPlayerNames.remove(args[1]);
+                chatLogger.addSuccessLog("Removed \"" + args[1] + "\" from target players.");
                 break;
+
+            case addteam:
+                if (isArgsLenUnexpected(args, 1))
+                {
+                    break;
+                }
+                targetPlayerNames.addAll(Utilities.getPlayerSPTeammates(mc));
+                chatLogger.addSuccessLog("Added all teammates to target players.");
+                break;
+
+            case clear:
+                if (isArgsLenUnexpected(args, 1))
+                {
+                    break;
+                }
+                targetPlayerNames.clear();
+                chatLogger.addSuccessLog("Cleared target players.");
+                break;
+
             case sethp:
-                if (args.length == 2 && FLOAT.matcher(args[1]).matches())
+                if (isArgsLenUnexpected(args, 2))
                 {
-                    config.setThresholdHPPercent(Integer.parseInt(args[1]));
+                    break;
+                }
+                try
+                {
+                    int hpPercent = parseInt(args[1], 0, 100);
+                    config.setThresholdHPPercent(hpPercent);
+                    chatLogger.addSuccessLog("Set threshold hp to: " + hpPercent + "%");
+                }
+                catch (NumberInvalidException e)
+                {
+                    chatLogger.addFailureLog("Invalid number. bounds = (0, 100)");
                 }
                 break;
+
             case setmaxdist:
-                if (args.length == 2 && FLOAT.matcher(args[1]).matches())
+                if (isArgsLenUnexpected(args, 2))
                 {
-                    config.setMaxDistance(Float.parseFloat(args[1]));
+                    break;
+                }
+                try
+                {
+                    double maxDist = parseDouble(args[1], 0, 50);
+                    config.setMaxDistance((float) maxDist);
+                    chatLogger.addSuccessLog("Set max distance to: " + maxDist + "m");
+                }
+                catch (NumberInvalidException e)
+                {
+                    chatLogger.addFailureLog("Invalid number. bounds = (0, 50)");
                 }
                 break;
+
             case setscale:
-                if (args.length == 2 && FLOAT.matcher(args[1]).matches())
+                if (isArgsLenUnexpected(args, 2))
                 {
-                    config.setRenderScale(Float.parseFloat(args[1]));
+                    break;
+                }
+                try
+                {
+                    double renderScale = parseDouble(args[1], 0, 10);
+                    config.setRenderScale((float) renderScale);
+                    chatLogger.addSuccessLog("Set render scale to: " + renderScale);
+                }
+                catch (NumberInvalidException e)
+                {
+                    chatLogger.addFailureLog("Invalid number. bounds = (0, 10)");
                 }
                 break;
+
             case setoffset:
-                if (args.length == 2 && FLOAT.matcher(args[1]).matches())
+                if (isArgsLenUnexpected(args, 2))
                 {
-                    config.setRenderYOffset(Float.parseFloat(args[1]));
+                    break;
+                }
+                try
+                {
+                    double renderOffset = parseDouble(args[1], -100, 100);
+                    config.setRenderYOffset((float) renderOffset);
+                    chatLogger.addSuccessLog("Set render offset to: " + renderOffset);
+                }
+                catch (NumberInvalidException e)
+                {
+                    chatLogger.addFailureLog("Invalid number. bounds = (-100, 100)");
                 }
                 break;
+
             default:
                 displayCommandHelp();
                 break;
@@ -178,24 +247,44 @@ public class Command extends CommandBase
         return null;
     }
 
-    private void displayCommandHelp()
+    private boolean isArgsLenUnexpected(String[] args, int expectedLen)
     {
-        for (String command : Commands.getNames())
+        if (args.length != expectedLen)
         {
-            chatLogger.addLog("/hptracker " + command, EnumChatFormatting.GRAY, false);
+            chatLogger.addFailureLog("Command failed, wrong number of arguments.");
+            return true;
         }
+        return false;
     }
 
+    private void displayCommandHelp()
+    {
+        chatLogger.addCenteredLogNoHeader(getWhiteComp(" HPTracker Commands "), '-', new ChatStyle().setColor(EnumChatFormatting.GOLD).setStrikethrough(true));
+        for (String command : Commands.getNames())
+        {
+            chatLogger.addCenteredLogNoHeader(getWhiteComp("/hptracker ").appendSibling(getGoldComp(command)));
+        }
+        chatLogger.addCenteredLogNoHeader(getWhiteComp(""), '-', new ChatStyle().setColor(EnumChatFormatting.GOLD).setStrikethrough(true));
+    }
+
+    private ChatComponentText getGoldComp(String s)
+    {
+        return new ChatComponentText(EnumChatFormatting.GOLD + s);
+    }
+
+    private ChatComponentText getWhiteComp(String s)
+    {
+        return new ChatComponentText(EnumChatFormatting.WHITE + s);
+    }
 
     private enum Commands
     {
         none,
         config,
-        list,
         add,
         remove,
-        addall,
-        removeall,
+        addteam,
+        clear,
         sethp,
         setmaxdist,
         setscale,
@@ -203,7 +292,7 @@ public class Command extends CommandBase
 
         private static String[] getNames()
         {
-            return new String[]{config.name(), list.name(), add.name(), remove.name(), addall.name(), removeall.name(),
+            return new String[]{config.name(), add.name(), remove.name(), addteam.name(), clear.name(),
                     sethp.name(), setmaxdist.name(), setscale.name(), setoffset.name()};
         }
     }

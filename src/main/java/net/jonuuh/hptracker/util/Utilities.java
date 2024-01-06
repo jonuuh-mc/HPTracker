@@ -1,14 +1,12 @@
 package net.jonuuh.hptracker.util;
 
-import net.jonuuh.hptracker.config.TargetPlayerNameSet;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.network.NetworkPlayerInfo;
 import net.minecraft.scoreboard.ScorePlayerTeam;
+import net.minecraft.util.EnumChatFormatting;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -42,47 +40,67 @@ public class Utilities
         return map;
     }
 
-    public static Set<String> getDisplayNames(Minecraft mc, TargetPlayerNameSet<String> targetPlayerNameSet)
+    public static Set<String> getPlayerSPTeammates(Minecraft mc)
     {
-        Set<String> displayNames = new HashSet<>();
-        for (String targetPlayerName : targetPlayerNameSet)
+        Set<String> teammateNames = new HashSet<>();
+
+        if (mc.getNetHandler() != null && mc.getNetHandler().getPlayerInfoMap() != null)
         {
-            try
+            Set<NetworkPlayerInfo> teammateInfo = mc.getNetHandler().getPlayerInfoMap().stream().filter(networkPlayerInfo -> verifyTeammate(mc, networkPlayerInfo)).collect(Collectors.toSet());
+            teammateNames = teammateInfo.stream().map(networkPlayerInfo -> networkPlayerInfo.getGameProfile().getName()).collect(Collectors.toSet());
+        }
+        return teammateNames;
+    }
+
+    private static boolean verifyTeammate(Minecraft mc, NetworkPlayerInfo networkPlayerInfo)
+    {
+        ScorePlayerTeam playerSPTeam = mc.theWorld.getScoreboard().getPlayersTeam(mc.thePlayer.getName());
+        if (networkPlayerInfo.getPlayerTeam().getTeamName().equals(playerSPTeam.getTeamName()))
+        {
+            return true;
+        }
+        if (networkPlayerInfo.getPlayerTeam().getColorPrefix().equals(playerSPTeam.getColorPrefix()))
+        {
+            return true;
+        }
+        return false;
+    }
+
+    public static String getPlayerDisplayName(Minecraft mc, String name)
+    {
+        if (mc.getNetHandler() != null && mc.getNetHandler().getPlayerInfoMap() != null)
+        {
+            NetworkPlayerInfo playerInfo = mc.getNetHandler().getPlayerInfoMap().stream().filter(networkPlayerInfo -> networkPlayerInfo.getGameProfile().getName().equals(name)).findFirst().orElse(null);
+            if (playerInfo != null)
             {
-                displayNames.add(mc.theWorld.getPlayerEntityByName(targetPlayerName).getDisplayName().getFormattedText());
+                if (playerInfo.getDisplayName() != null)
+                {
+                    return playerInfo.getDisplayName().getFormattedText() + EnumChatFormatting.RESET;
+                }
+                return ScorePlayerTeam.formatPlayerName(playerInfo.getPlayerTeam(), playerInfo.getGameProfile().getName() + EnumChatFormatting.RESET);
             }
-            catch (NullPointerException e)
-            {
-                e.printStackTrace();
-                displayNames.add(targetPlayerName);
-            }
         }
-        return displayNames;
+        return "";
     }
 
-    public static Set<String> getOnlinePlayerDisplayNames(Minecraft mc)
-    {
-        Set<String> displayNames = new HashSet<>();
-        try
-        {
-            displayNames = mc.getNetHandler().getPlayerInfoMap().stream().map(Utilities::getPlayerName).collect(Collectors.toSet());
-        }
-        catch(NullPointerException e)
-        {
-            e.printStackTrace();
-        }
-        return displayNames;
-    }
-
-
-    private static String getPlayerName(NetworkPlayerInfo networkPlayerInfo)
-    {
-        if (networkPlayerInfo.getDisplayName() != null)
-        {
-            return networkPlayerInfo.getDisplayName().getFormattedText();
-        }
-        return ScorePlayerTeam.formatPlayerName(networkPlayerInfo.getPlayerTeam(), networkPlayerInfo.getGameProfile().getName());
-    }
+//    public static Set<String> getOnlinePlayerDisplayNames(Minecraft mc)
+//    {
+//        Set<String> displayNames = new HashSet<>();
+//        if (mc.getNetHandler() != null && mc.getNetHandler().getPlayerInfoMap() != null)
+//        {
+//            displayNames = mc.getNetHandler().getPlayerInfoMap().stream().map(Utilities::getPlayerDisplayName).collect(Collectors.toSet());
+//        }
+//        return displayNames;
+//    }
+//
+//    private static String getPlayerDisplayName(NetworkPlayerInfo networkPlayerInfo)
+//    {
+//        if (networkPlayerInfo.getDisplayName() != null)
+//        {
+//            return networkPlayerInfo.getDisplayName().getFormattedText() + EnumChatFormatting.RESET;
+//        }
+//        return ScorePlayerTeam.formatPlayerName(networkPlayerInfo.getPlayerTeam(), networkPlayerInfo.getGameProfile().getName() + EnumChatFormatting.RESET);
+//    }
 
     /**
      * Gets the names of all online players (in the world).
@@ -90,15 +108,14 @@ public class Utilities
      * @param mc the minecraft object
      * @return the online player names
      */
-    public static List<String> getOnlinePlayerNames(Minecraft mc)
+    public static Set<String> getOnlinePlayerNames(Minecraft mc)
     {
-        List<String> onlinePlayers = new ArrayList<>();
-        if (mc.thePlayer != null)
+        Set<String> onlinePlayers = new HashSet<>();
+        if (mc.getNetHandler() != null && mc.getNetHandler().getPlayerInfoMap() != null)
         {
-            for (NetworkPlayerInfo networkPlayerInfo : mc.getNetHandler().getPlayerInfoMap())
-            {
-                onlinePlayers.add(networkPlayerInfo.getGameProfile().getName());
-            }
+            onlinePlayers = mc.getNetHandler().getPlayerInfoMap().stream()
+                    .map(networkPlayerInfo -> networkPlayerInfo.getGameProfile().getName())
+                    .collect(Collectors.toSet());
         }
         return onlinePlayers;
     }

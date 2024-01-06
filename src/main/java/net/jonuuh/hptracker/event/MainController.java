@@ -3,7 +3,6 @@ package net.jonuuh.hptracker.event;
 import net.jonuuh.hptracker.config.Config;
 import net.jonuuh.hptracker.event.render.Renderer;
 import net.jonuuh.hptracker.util.ChatLogger;
-import net.jonuuh.hptracker.util.Utilities;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraftforge.common.MinecraftForge;
@@ -37,8 +36,6 @@ public class MainController
     {
         if (debugKey.isPressed())
         {
-            chatLogger.addLog(Utilities.getOnlinePlayerDisplayNames(mc).toString());
-
             if (!doRendering)
             {
                 chatLogger.addLog("registered renderer");

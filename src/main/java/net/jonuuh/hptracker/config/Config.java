@@ -3,7 +3,12 @@ package net.jonuuh.hptracker.config;
 import net.jonuuh.hptracker.util.ChatLogger;
 import net.jonuuh.hptracker.util.Utilities;
 import net.minecraft.client.Minecraft;
+import net.minecraft.util.ChatComponentText;
+import net.minecraft.util.ChatStyle;
 import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.IChatComponent;
+
+import java.util.stream.Collectors;
 
 /**
  * Main config.
@@ -76,11 +81,27 @@ public class Config
 
     public void displayConfig()
     {
-        chatLogger.addLog("targets: " + Utilities.getDisplayNames(mc, targetPlayerNames), EnumChatFormatting.GRAY, false); // TODO: fix closing bracket color
-        chatLogger.addLog("threshold HP%: " + thresholdHPPercent, EnumChatFormatting.GRAY, false);
-        chatLogger.addLog("max distance: " + maxDistance, EnumChatFormatting.GRAY, false);
-        chatLogger.addLog("render scale: " + renderScale, EnumChatFormatting.GRAY, false);
-        chatLogger.addLog("render offset: " + renderYOffset, EnumChatFormatting.GRAY, false);
+        String targetPlayerDisplayNames = targetPlayerNames.stream().map(targetPlayerName -> Utilities.getPlayerDisplayName(mc, targetPlayerName)).collect(Collectors.toSet()).toString();
+        targetPlayerDisplayNames = targetPlayerDisplayNames.substring(1, targetPlayerDisplayNames.length() - 1);
+        IChatComponent targetPlayerDisplayNamesComp = getGoldComp("{").appendSibling(new ChatComponentText(targetPlayerDisplayNames)).appendSibling(getGoldComp("}"));
+
+        chatLogger.addCenteredLogNoHeader(getWhiteComp(" HPTracker Config "), '-', new ChatStyle().setColor(EnumChatFormatting.GOLD).setStrikethrough(true));
+        chatLogger.addCenteredLogNoHeader(getWhiteComp("Targets: ").appendSibling(targetPlayerDisplayNamesComp));
+        chatLogger.addCenteredLogNoHeader(getWhiteComp("Threshold HP: ").appendSibling(getGoldComp(thresholdHPPercent + "%")));
+        chatLogger.addCenteredLogNoHeader(getWhiteComp("Max distance: ").appendSibling(getGoldComp(maxDistance + "m")));
+        chatLogger.addCenteredLogNoHeader(getWhiteComp("Render scale: ").appendSibling(getGoldComp(String.valueOf(renderScale))));
+        chatLogger.addCenteredLogNoHeader(getWhiteComp("Render offset: ").appendSibling(getGoldComp(String.valueOf(renderYOffset))));
+        chatLogger.addCenteredLogNoHeader(getWhiteComp(""), '-', new ChatStyle().setColor(EnumChatFormatting.GOLD).setStrikethrough(true));
+    }
+
+    private ChatComponentText getGoldComp(String s)
+    {
+        return new ChatComponentText(EnumChatFormatting.GOLD + s);
+    }
+
+    private ChatComponentText getWhiteComp(String s)
+    {
+        return new ChatComponentText(EnumChatFormatting.WHITE + s);
     }
 }
 

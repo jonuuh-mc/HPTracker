@@ -19,7 +19,7 @@ import org.lwjgl.input.Keyboard;
 public class HPTracker
 {
     public static final String MODID = "hptracker";
-    public static final String VERSION = "1.1.0";
+    public static final String VERSION = "1.2.0";
 
     private final Minecraft mc;
     private final ChatLogger chatLogger;
@@ -29,7 +29,7 @@ public class HPTracker
     public HPTracker()
     {
         this.mc = Minecraft.getMinecraft();
-        this.chatLogger = new ChatLogger(mc, "HPTracker", EnumChatFormatting.DARK_GRAY, EnumChatFormatting.GOLD, true);
+        this.chatLogger = new ChatLogger(mc, "HPTracker", EnumChatFormatting.WHITE, EnumChatFormatting.GOLD, false);
         this.config = new Config(mc, chatLogger);
         this.debugKey = new KeyBinding("Test", Keyboard.KEY_BACKSLASH, "HPTracker");
     }

@@ -2,13 +2,13 @@
     {
         "modid": "hptracker",
         "name": "HPTracker",
-        "description": "A mod to track specific players' health and location.\n/hptracker for help",
+        "description": "A mod to track specific players' health and location.\nDesigned with a focus on usage in Hypixel's Mega Walls.\n/hptracker for help",
         "version": "${version}",
         "mcversion": "${mcversion}",
         "url": "",
         "updateUrl": "",
         "authorList": ["jonuuh"],
-        "credits": "inspiration from Alexdoru and Mxntal's mods",
+        "credits": "HPTracker mod by jonuuh, Heavy inspiration taken from Alexdoru's MWEnhancements",
         "logoFile": "",
         "screenshots": [],
         "dependencies": []
