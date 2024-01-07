@@ -54,7 +54,7 @@ public class Utilities
 
     private static boolean verifyTeammate(Minecraft mc, NetworkPlayerInfo networkPlayerInfo)
     {
-        ScorePlayerTeam playerSPTeam = mc.theWorld.getScoreboard().getPlayersTeam(mc.thePlayer.getName());
+        ScorePlayerTeam playerSPTeam = mc.theWorld.getScoreboard().getPlayersTeam(mc.thePlayer.getName()); // TODO: null if nicked
         if (networkPlayerInfo.getPlayerTeam().getTeamName().equals(playerSPTeam.getTeamName()))
         {
             return true;
@@ -80,7 +80,7 @@ public class Utilities
                 return ScorePlayerTeam.formatPlayerName(playerInfo.getPlayerTeam(), playerInfo.getGameProfile().getName() + EnumChatFormatting.RESET);
             }
         }
-        return "";
+        return name;
     }
 
 //    public static Set<String> getOnlinePlayerDisplayNames(Minecraft mc)

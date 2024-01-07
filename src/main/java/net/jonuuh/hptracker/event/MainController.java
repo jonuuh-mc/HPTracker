@@ -13,17 +13,21 @@ public class MainController
 {
     private final Minecraft mc;
     private final ChatLogger chatLogger;
+    private final KeyBinding toggleKey;
     private final KeyBinding debugKey;
     private final Renderer renderer;
 
-    private boolean doRendering = false;
+    private boolean doRendering = true;
+    private boolean doMining = false;
 
-    public MainController(Minecraft mc, ChatLogger chatLogger, Config config, KeyBinding debugKey)
+    public MainController(Minecraft mc, ChatLogger chatLogger, Config config, KeyBinding toggleKey, KeyBinding debugKey)
     {
         this.mc = mc;
         this.chatLogger = chatLogger;
+        this.toggleKey = toggleKey;
         this.debugKey = debugKey;
         renderer = new Renderer(mc, config);
+        MinecraftForge.EVENT_BUS.register(renderer);
     }
 
     /**
@@ -34,19 +38,38 @@ public class MainController
     @SubscribeEvent
     public void onKeyInput(KeyInputEvent event)
     {
-        if (debugKey.isPressed())
+        if (toggleKey.isPressed())
         {
-            if (!doRendering)
+            if (doRendering)
             {
-                chatLogger.addLog("registered renderer");
-                MinecraftForge.EVENT_BUS.register(renderer);
+                chatLogger.addFailureLog("Unregistered renderer.");
+                MinecraftForge.EVENT_BUS.unregister(renderer);
             }
             else
             {
-                chatLogger.addLog("unregistered renderer");
-                MinecraftForge.EVENT_BUS.unregister(renderer);
+                chatLogger.addSuccessLog("Registered renderer.");
+                MinecraftForge.EVENT_BUS.register(renderer);
             }
             doRendering = !doRendering;
+        }
+
+        if (debugKey.isPressed())
+        {
+            if (doMining)
+            {
+                chatLogger.addFailureLog("Stopped miner.");
+                KeyBinding.setKeyBindState(mc.gameSettings.keyBindForward.getKeyCode(), false);
+                KeyBinding.setKeyBindState(mc.gameSettings.keyBindSneak.getKeyCode(), false);
+                KeyBinding.setKeyBindState(mc.gameSettings.keyBindAttack.getKeyCode(), false);
+            }
+            else
+            {
+                chatLogger.addSuccessLog("Started miner.");
+                KeyBinding.setKeyBindState(mc.gameSettings.keyBindForward.getKeyCode(), true);
+                KeyBinding.setKeyBindState(mc.gameSettings.keyBindSneak.getKeyCode(), true);
+                KeyBinding.setKeyBindState(mc.gameSettings.keyBindAttack.getKeyCode(), true);
+            }
+            doMining = !doMining;
         }
     }
 

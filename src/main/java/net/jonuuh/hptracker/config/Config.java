@@ -29,7 +29,7 @@ public class Config
         this.chatLogger = chatLogger;
         this.targetPlayerNames = new TargetPlayerNameSet<>(mc);
         this.thresholdHPPercent = 50;
-        this.maxDistance = 20;
+        this.maxDistance = 15;
         this.renderScale = 1.0F;
         this.renderYOffset = -40.0F;
     }
@@ -83,7 +83,7 @@ public class Config
     {
         String targetPlayerDisplayNames = targetPlayerNames.stream().map(targetPlayerName -> Utilities.getPlayerDisplayName(mc, targetPlayerName)).collect(Collectors.toSet()).toString();
         targetPlayerDisplayNames = targetPlayerDisplayNames.substring(1, targetPlayerDisplayNames.length() - 1);
-        IChatComponent targetPlayerDisplayNamesComp = getGoldComp("{").appendSibling(new ChatComponentText(targetPlayerDisplayNames)).appendSibling(getGoldComp("}"));
+        IChatComponent targetPlayerDisplayNamesComp = getGoldComp("{").appendSibling(new ChatComponentText(targetPlayerDisplayNames)).appendSibling(getGoldComp("}")).appendSibling(getGoldComp(" (" + targetPlayerNames.size() + ")"));
 
         chatLogger.addCenteredLogNoHeader(getWhiteComp(" HPTracker Config "), '-', new ChatStyle().setColor(EnumChatFormatting.GOLD).setStrikethrough(true));
         chatLogger.addCenteredLogNoHeader(getWhiteComp("Targets: ").appendSibling(targetPlayerDisplayNamesComp));
