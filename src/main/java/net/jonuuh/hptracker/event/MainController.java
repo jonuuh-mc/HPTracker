@@ -14,18 +14,15 @@ public class MainController
     private final Minecraft mc;
     private final ChatLogger chatLogger;
     private final KeyBinding toggleKey;
-    private final KeyBinding debugKey;
     private final Renderer renderer;
 
     private boolean doRendering = true;
-    private boolean doMining = false;
 
-    public MainController(Minecraft mc, ChatLogger chatLogger, Config config, KeyBinding toggleKey, KeyBinding debugKey)
+    public MainController(Minecraft mc, ChatLogger chatLogger, Config config, KeyBinding toggleKey)
     {
         this.mc = mc;
         this.chatLogger = chatLogger;
         this.toggleKey = toggleKey;
-        this.debugKey = debugKey;
         renderer = new Renderer(mc, config);
         MinecraftForge.EVENT_BUS.register(renderer);
     }
@@ -51,25 +48,6 @@ public class MainController
                 MinecraftForge.EVENT_BUS.register(renderer);
             }
             doRendering = !doRendering;
-        }
-
-        if (debugKey.isPressed())
-        {
-            if (doMining)
-            {
-                chatLogger.addFailureLog("Stopped miner.");
-                KeyBinding.setKeyBindState(mc.gameSettings.keyBindForward.getKeyCode(), false);
-                KeyBinding.setKeyBindState(mc.gameSettings.keyBindSneak.getKeyCode(), false);
-                KeyBinding.setKeyBindState(mc.gameSettings.keyBindAttack.getKeyCode(), false);
-            }
-            else
-            {
-                chatLogger.addSuccessLog("Started miner.");
-                KeyBinding.setKeyBindState(mc.gameSettings.keyBindForward.getKeyCode(), true);
-                KeyBinding.setKeyBindState(mc.gameSettings.keyBindSneak.getKeyCode(), true);
-                KeyBinding.setKeyBindState(mc.gameSettings.keyBindAttack.getKeyCode(), true);
-            }
-            doMining = !doMining;
         }
     }
 

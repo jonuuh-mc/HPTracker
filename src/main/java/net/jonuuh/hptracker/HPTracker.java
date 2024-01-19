@@ -19,13 +19,12 @@ import org.lwjgl.input.Keyboard;
 public class HPTracker
 {
     public static final String MODID = "hptracker";
-    public static final String VERSION = "1.2.1";
+    public static final String VERSION = "1.2.2";
 
     private final Minecraft mc;
     private final ChatLogger chatLogger;
     private final Config config;
     private final KeyBinding toggleKey;
-    private final KeyBinding debugKey;
 
     public HPTracker()
     {
@@ -33,15 +32,13 @@ public class HPTracker
         this.chatLogger = new ChatLogger(mc, "HPTracker", EnumChatFormatting.WHITE, EnumChatFormatting.GOLD, false);
         this.config = new Config(mc, chatLogger);
         this.toggleKey = new KeyBinding("Toggle", Keyboard.KEY_BACKSLASH, "HPTracker");
-        this.debugKey = new KeyBinding("Test", Keyboard.KEY_L, "HPTracker");
     }
 
     @EventHandler
     public void init(FMLInitializationEvent event)
     {
         ClientRegistry.registerKeyBinding(toggleKey);
-        ClientRegistry.registerKeyBinding(debugKey);
         ClientCommandHandler.instance.registerCommand(new Command(mc, chatLogger, config));
-        MinecraftForge.EVENT_BUS.register(new MainController(mc, chatLogger, config, toggleKey, debugKey));
+        MinecraftForge.EVENT_BUS.register(new MainController(mc, chatLogger, config, toggleKey));
     }
 }

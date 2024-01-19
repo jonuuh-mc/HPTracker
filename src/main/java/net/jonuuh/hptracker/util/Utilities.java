@@ -55,6 +55,13 @@ public class Utilities
     private static boolean verifyTeammate(Minecraft mc, NetworkPlayerInfo networkPlayerInfo)
     {
         ScorePlayerTeam playerSPTeam = mc.theWorld.getScoreboard().getPlayersTeam(mc.thePlayer.getName()); // TODO: null if nicked
+
+        // if the 'teammate' is the client player themself
+        if (mc.thePlayer.getName().equals(networkPlayerInfo.getGameProfile().getName()))
+        {
+            return false;
+        }
+
         if (networkPlayerInfo.getPlayerTeam().getTeamName().equals(playerSPTeam.getTeamName()))
         {
             return true;
