@@ -15,12 +15,9 @@ import net.minecraftforge.fml.common.Mod.EventHandler;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import org.lwjgl.input.Keyboard;
 
-@Mod(modid = HPTracker.MODID, version = HPTracker.VERSION)
+@Mod(modid = "hptracker", version = "1.2.3")
 public class HPTracker
 {
-    public static final String MODID = "hptracker";
-    public static final String VERSION = "1.2.2";
-
     private final Minecraft mc;
     private final ChatLogger chatLogger;
     private final Config config;
@@ -31,7 +28,7 @@ public class HPTracker
         this.mc = Minecraft.getMinecraft();
         this.chatLogger = new ChatLogger(mc, "HPTracker", EnumChatFormatting.WHITE, EnumChatFormatting.GOLD, false);
         this.config = new Config(mc, chatLogger);
-        this.toggleKey = new KeyBinding("Toggle", Keyboard.KEY_BACKSLASH, "HPTracker");
+        this.toggleKey = new KeyBinding("HPT Toggle", Keyboard.KEY_BACKSLASH, "HPTracker");
     }
 
     @EventHandler

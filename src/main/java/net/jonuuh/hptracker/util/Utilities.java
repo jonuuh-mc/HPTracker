@@ -3,6 +3,7 @@ package net.jonuuh.hptracker.util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.network.NetworkPlayerInfo;
 import net.minecraft.scoreboard.ScorePlayerTeam;
+import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.EnumChatFormatting;
 
 import java.util.HashMap;
@@ -46,18 +47,21 @@ public class Utilities
 
         if (mc.getNetHandler() != null && mc.getNetHandler().getPlayerInfoMap() != null)
         {
-            Set<NetworkPlayerInfo> teammateInfo = mc.getNetHandler().getPlayerInfoMap().stream().filter(networkPlayerInfo -> verifyTeammate(mc, networkPlayerInfo)).collect(Collectors.toSet());
-            teammateNames = teammateInfo.stream().map(networkPlayerInfo -> networkPlayerInfo.getGameProfile().getName()).collect(Collectors.toSet());
+            Set<NetworkPlayerInfo> teammatesInfo = mc.getNetHandler().getPlayerInfoMap().stream().filter(networkPlayerInfo -> verifyTeammate(mc, networkPlayerInfo)).collect(Collectors.toSet());
+            teammateNames = teammatesInfo.stream().map(networkPlayerInfo -> networkPlayerInfo.getGameProfile().getName()).collect(Collectors.toSet());
         }
         return teammateNames;
     }
 
     private static boolean verifyTeammate(Minecraft mc, NetworkPlayerInfo networkPlayerInfo)
     {
-        ScorePlayerTeam playerSPTeam = mc.theWorld.getScoreboard().getPlayersTeam(mc.thePlayer.getName()); // TODO: null if nicked
+        // nick handling
+        NetworkPlayerInfo playerSPInfo = mc.getNetHandler().getPlayerInfo(mc.thePlayer.getUniqueID());
+        String playerSPDisplayName = playerSPInfo.getGameProfile().getName();
+        ScorePlayerTeam playerSPTeam = playerSPInfo.getPlayerTeam();
 
         // if the 'teammate' is the client player themself
-        if (mc.thePlayer.getName().equals(networkPlayerInfo.getGameProfile().getName()))
+        if (playerSPDisplayName.equals(networkPlayerInfo.getGameProfile().getName()))
         {
             return false;
         }

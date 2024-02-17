@@ -34,7 +34,8 @@ public class Renderer
 
         for (ValidTargetPlayer validTargetPlayer : ValidTargetPlayerFactory.getValidTargetPlayers(mc, config))
         {
-            String hpStr = Utilities.roundToHalf(validTargetPlayer.getHealth() / 2.0F) + "\u2764";
+//            String hpStr = Utilities.roundToHalf(validTargetPlayer.getHealth() / 2.0F) + "\u2764";
+            String hpStr = Float.toString(Utilities.roundToHalf(validTargetPlayer.getHealth()));
             float scale = config.getRenderScale();
 
             GlStateManager.pushMatrix();

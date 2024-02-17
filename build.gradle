@@ -12,8 +12,8 @@ buildscript {
 }
 apply plugin: 'net.minecraftforge.gradle.forge'
 
-version = "1.2.2"
-group = "net.jonuuh.hptracker" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
+version = "1.2.3"
+group = "net.jonuuh.hptracker"
 archivesBaseName = "HPTracker-1.8.9"
 
 sourceCompatibility = 1.8
